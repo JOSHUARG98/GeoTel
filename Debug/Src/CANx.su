@@ -1,0 +1,14 @@
+../Src/CANx.c:14:6:RCC_En_CANx	16	static
+../Src/CANx.c:20:6:CANx_Init	16	static
+../Src/CANx.c:39:6:CANx_BitTiming_500Kz	16	static
+../Src/CANx.c:53:6:CAN_FilterInit	16	static
+../Src/CANx.c:82:6:CAN_SetFilterValue	24	static
+../Src/CANx.c:100:6:CAN_MailboxConfig	24	static
+../Src/CANx.c:123:6:CAN_SendData	24	static
+../Src/CANx.c:136:6:CAN_RequestTransmission	16	static
+../Src/CANx.c:151:6:CAN_CheckAndClearFlags	24	static
+../Src/CANx.c:186:6:CANx_EnFIFO1Ints	16	static
+../Src/CANx.c:190:6:CANx_EnFIFO0Ints	16	static
+../Src/CANx.c:196:9:CANx_GetLEC	24	static
+../Src/CANx.c:202:6:CAN1_Rx0_FIFOx	16	static
+../Src/CANx.c:242:6:CAN1_Rx1_FIFOx	16	static

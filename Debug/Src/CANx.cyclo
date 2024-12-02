@@ -1,0 +1,14 @@
+../Src/CANx.c:14:6:RCC_En_CANx	2
+../Src/CANx.c:20:6:CANx_Init	4
+../Src/CANx.c:39:6:CANx_BitTiming_500Kz	1
+../Src/CANx.c:53:6:CAN_FilterInit	4
+../Src/CANx.c:82:6:CAN_SetFilterValue	1
+../Src/CANx.c:100:6:CAN_MailboxConfig	4
+../Src/CANx.c:123:6:CAN_SendData	2
+../Src/CANx.c:136:6:CAN_RequestTransmission	8
+../Src/CANx.c:151:6:CAN_CheckAndClearFlags	14
+../Src/CANx.c:186:6:CANx_EnFIFO1Ints	1
+../Src/CANx.c:190:6:CANx_EnFIFO0Ints	1
+../Src/CANx.c:196:9:CANx_GetLEC	1
+../Src/CANx.c:202:6:CAN1_Rx0_FIFOx	5
+../Src/CANx.c:242:6:CAN1_Rx1_FIFOx	5

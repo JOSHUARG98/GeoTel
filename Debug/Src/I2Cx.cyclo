@@ -1,0 +1,8 @@
+../Src/I2Cx.c:14:6:I2C_delay	2
+../Src/I2Cx.c:20:6:RCC_En_I2C	3
+../Src/I2Cx.c:32:6:I2C_Init	1
+../Src/I2Cx.c:46:6:I2C_Tx_1Byte	3
+../Src/I2Cx.c:70:9:I2C_Rx_1Byte	5
+../Src/I2Cx.c:111:6:I2C_Tx_2Bytes	3
+../Src/I2Cx.c:133:6:I2C_Tx_3Bytes	4
+../Src/I2Cx.c:155:6:I2C_Tx_4Bytes	5

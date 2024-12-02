@@ -1,0 +1,4 @@
+../Src/GPIOx.c:23:6:GPIOx_InitAF	3
+../Src/GPIOx.c:44:6:GPIOx_InitIO	3
+../Src/GPIOx.c:61:6:RCC_EnPort	7
+../Src/GPIOx.c:82:6:SystCLK_SetMSI	2
