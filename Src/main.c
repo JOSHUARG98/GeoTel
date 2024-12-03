@@ -211,6 +211,8 @@ int main(void)
 /*******************************************************************************************************/
    MPU6050_Init(); //INICIALIZAR Y CONFIGURAR REGISTROSD EL MPU6050
 
+   delay(1000000);
+   sendStringUARTx(USART3, "AT+QGPS=1\r\n\0");
 
     while (!(GPIOC->IDR & GPIO_IDR_IDR_13)) {
         GPIOB->ODR ^= GPIO_ODR_ODR_13; //Conmuta led de usuario para indicar que esta listo para empezar despues de precionar boton
@@ -287,10 +289,6 @@ int main(void)
             }
 */
         }
-        delay(1000000);
-        sendStringUARTx(USART3, "AT+CMGF=1\r\n\0");
-        delay(1000000);
-        sendStringUARTx(USART3, "AT+QGPS=1\r\n\0");
         delay(1000000);
         sendStringUARTx(USART3, "AT+QGPSLOC? \r\n\0");
     }
@@ -719,7 +717,7 @@ void sendMessage_http_field4(uint16_t fieldValue) {
  * *****************************************************************************/
 void sendMessage_Cell(int number) {
     char message[100]; // Buffer para el mensaje
-    sprintf(message, "Pruebas 27/11/24 GSM/STM32L452RE %d\r\n", number);
+    sprintf(message, "Pruebas 03/12/24 GSM/STM32L452RE %d\r\n", number);
 
     sendStringUARTx(USART3, "AT+CMGF=1\r\n\0");
     delay(100000);

@@ -12,7 +12,7 @@
 #include "USARTx.h"
 #include "NVIC.h"
 
-#define BUFFER_SIZE 100 // Tamaño máximo del buffer
+#define BUFFER_SIZE 250 // Tamaño máximo del buffer
 
 volatile uint8_t rxBuffer[BUFFER_SIZE]; // Arreglo para guardar los datos recibidos
 volatile uint16_t writeIndex = 0;      // Índice para guardar el próximo dato recibido
