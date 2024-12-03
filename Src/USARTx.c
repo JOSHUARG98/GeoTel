@@ -12,6 +12,11 @@
 #include "USARTx.h"
 #include "NVIC.h"
 
+#define BUFFER_SIZE 100 // Tamaño máximo del buffer
+
+volatile uint8_t rxBuffer[BUFFER_SIZE]; // Arreglo para guardar los datos recibidos
+volatile uint16_t writeIndex = 0;      // Índice para guardar el próximo dato recibido
+
 char *A;
 char buffer[255];
 
@@ -61,11 +66,34 @@ void USARTx_CONF(USART_TypeDef *USARTx_, uint16_t USARTx_BRR_MSI, uint8_t USARTx
 
 // Función de interrupción por UART
 void USART3_IRQHandler(void){
+	/*
 	//CADA QUE SE ACTIVE LA BANDERA DE INTERRUPCIÓN DE LA RECEPCIÓN,SE VA A HACER LO SIGUIENTE:
 	*A++ = USART3->RDR;
 	//LIMPIAMOS BANDERA PARA SALIR DE INTERRUPCIÓN
 	CLEAR_BIT(USART3->RQR, 0x08);
 	//UART4->TDR = *A++;
+	 * */
+
+	    // Leer el dato recibido desde el registro RDR
+	    uint8_t receivedData = USART3->RDR;
+
+	    // Guardar el dato en el arreglo
+	    if (writeIndex < BUFFER_SIZE) {
+	        rxBuffer[writeIndex++] = receivedData;
+	    } else {
+	        // Si el buffer está lleno, limpiar el buffer
+	        for (uint16_t i = 0; i < BUFFER_SIZE; i++) {
+	            rxBuffer[i] = 0; // Limpia cada posición del buffer
+	        }
+
+	        // Reiniciar el índice y guardar el dato recibido en la primera posición
+	        writeIndex = 0;
+	       // rxBuffer[writeIndex++] = receivedData;
+	    }
+
+	    // Limpiar la bandera para salir de la interrupción
+	    CLEAR_BIT(USART3->RQR, 0x08);
+
 }
 
 // Función que envía un dato por UART

@@ -131,7 +131,7 @@ uint32_t countdown = 10000; // Configura el tiempo del ciclo (10,000 "unidades",
 int main(void)
 {
 
-  // uint32_t caseNumber = 0;  // Inicializar el contador para el caso del switch
+  // uint32_t caseNumber = 0;  // Inicializar el contador para el caso del s                                                                                 witch
 
 
 /****************************INICIALIZACION Y CONFIGURACION DE PUERTOS Y PERIFERICOS************************************************/
@@ -223,6 +223,8 @@ int main(void)
            GPIOB->ODR ^= GPIO_ODR_ODR_13; // BLINK LED
            MPU6050_Read_Ace_Giro(); //LECTURA DE GIROSCOPIO Y ACELEROMETRO
 
+
+           /*
            ByteA = 0;
            ByteB = 0;
            ByteC = 0;
@@ -237,10 +239,12 @@ int main(void)
            ByteD = (receivedData0_H & 0x00FF0000) >> 16;
            Vel_Km = ByteA;
           // Get_Obdii_Data();
+           */
+
            SSD1306_Refresh();
            delay(500000);
 
-           sendMessage_http_field1(Vel_Km);
+         //  sendMessage_http_field1(Vel_Km);
          //  sendMessage_Cell(Combustible);
             /*
 
@@ -283,9 +287,12 @@ int main(void)
             }
 */
         }
-
-        Send_Telemetry ();
-        sendMessage_Cell(Vel_Km);
+        delay(1000000);
+        sendStringUARTx(USART3, "AT+CMGF=1\r\n\0");
+        delay(1000000);
+        sendStringUARTx(USART3, "AT+QGPS=1\r\n\0");
+        delay(1000000);
+        sendStringUARTx(USART3, "AT+QGPSLOC? \r\n\0");
     }
 
 
@@ -835,6 +842,7 @@ SSD1306_WriteString("  T");
 
 
 void Send_Telemetry (void){
+
     sendMessage_http_field4(Combustible);
 
     //sendMessage_http_field3(Vel_Km);
