@@ -53,6 +53,6 @@ void sendStringUARTx(USART_TypeDef *USARTx_, register const char *msg);
 
 
 void sendByteUARTx(USART_TypeDef *USARTx_, uint8_t data);
-
+void GPS_PET(uint8_t caseN);
 
 #endif /* UARTX_H_ */

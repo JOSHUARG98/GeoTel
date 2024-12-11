@@ -60,7 +60,6 @@
 /*********DECLARACION DE LAS FUNCIONES DEL MAIN PRINCIPAL************/
 
 void MPU6050_Read_Ace_Giro(void);
-void ActualizarPantalla(float N1, float N2);
 void SecuanciaInicio(void);
 void Init_Peripheral(void);
 void Conf_Peripheral(void);
@@ -75,13 +74,13 @@ void Obdii_Message(uint32_t Obdii_pid);
 void SSD1306_Refresh(void);
 void Send_Telemetry (void);
 void sendMessage_Cell(int number);
+
 /*********FIN DE LAS FUNCIONES DEL MAIN PRINCIPAL************/
-
-
 
 /*********DECLARACION DE VARIABLES GLOBALES ************/
 
 /*****Variables para guardar la Aceleracion Lineal de X, Y, Z, directamente del MPU***************/
+
 int16_t AC_X=0;
 int16_t AC_Y=0;
 int16_t AC_Z=0;
@@ -100,7 +99,7 @@ float GX=0;
 float GY=0;
 float GZ=0;
 
-int AB, FB, GB, W, C=0;
+int AB, FB, GB, W;
 uint32_t receivedData0_L, receivedData0_H; // Variable para almacenar los datos recibidos
 uint32_t receivedData1_L, receivedData1_H ; // Variable para almacenar los datos recibidos
 uint8_t PID;
@@ -111,6 +110,8 @@ int RPM_motor=0;
 int Temp_liquido = 0;
 int Combustible = 0;
 
+int messageCounter = 0;       // Contador para alternar entre los mensajes
+int C = 0;       // Contador para alternar entre los mensajes
 uint8_t ByteA, ByteB, ByteC, ByteD;
 
 uint32_t originalMessage_0D = 0x000D4103;  // Este es el valor original (32 bits)
@@ -209,7 +210,7 @@ int main(void)
 
 /*************************USO DE PANTALLA MPU6050***********************************************/
 /*******************************************************************************************************/
-   MPU6050_Init(); //INICIALIZAR Y CONFIGURAR REGISTROSD EL MPU6050
+   //MPU6050_Init(); //INICIALIZAR Y CONFIGURAR REGISTROSD EL MPU6050
 
    delay(1000000);
    sendStringUARTx(USART3, "AT+QGPS=1\r\n\0");
@@ -220,10 +221,9 @@ int main(void)
     }
     delay(500000);  // Se queda en este bucle mientras el botón está en 0 (no presionado)
     while (1) {
-
         while (!(GPIOC->IDR & GPIO_IDR_IDR_13)) {
            GPIOB->ODR ^= GPIO_ODR_ODR_13; // BLINK LED
-           MPU6050_Read_Ace_Giro(); //LECTURA DE GIROSCOPIO Y ACELEROMETRO
+         //  MPU6050_Read_Ace_Giro(); //LECTURA DE GIROSCOPIO Y ACELEROMETRO
 
 
            /*
@@ -240,189 +240,31 @@ int main(void)
            ByteC = (receivedData0_H & 0x0000FF00) >> 8;
            ByteD = (receivedData0_H & 0x00FF0000) >> 16;
            Vel_Km = ByteA;
-          // Get_Obdii_Data();
            */
-
+          // Get_Obdii_Data();
            SSD1306_Refresh();
-           delay(500000);
+           delay(5000000);
+           messageCounter++;
+           GPS_PET(messageCounter);
+           // Asegurarse de que el contador esté dentro del rango 1-2
+           if (messageCounter > 2) {
+           	messageCounter = 0; // Reiniciar al primer caso
+           }
 
-         //  sendMessage_http_field1(Vel_Km);
-         //  sendMessage_Cell(Combustible);
-            /*
-
-            if (PID == 0x0D) {
-            	Velocidad++;
-                frame = (originalMessage_0D & 0x00FFFFFF) | ((uint32_t)Velocidad << 24);
-                CAN_SendData(CAN1, 8, frame, 0x1); //CAN1, DLC , DATA, Localidad
-                CAN_RequestTransmission(CAN1, 0x1);
-                PID = 0x00;
-            }
-
-            if (PID == 0x0C) {
-            	RPMs++;
-            	RPMs++;
-                frame = (originalMessage_0C & 0x00FFFFFF) | ((uint32_t)RPMs << 24);
-                CAN_SendData(CAN1, 8, frame, 0x1); //CAN1, DLC , DATA, Localidad
-                CAN_RequestTransmission(CAN1, 0x1);
-                PID = 0x00;
-            }
-
-            if (PID == 0x05) {
-            	Temperatura++;
-            	Temperatura++;
-            	Temperatura++;
-                frame = (originalMessage_05 & 0x00FFFFFF) | ((uint32_t)Temperatura << 24);
-                CAN_SendData(CAN1, 8, frame, 0x1); //CAN1, DLC , DATA, Localidad
-                CAN_RequestTransmission(CAN1, 0x1);
-                PID = 0x00;
-            }
-
-            if (PID == 0x2F) {
-            	Gasolina++;
-            	Gasolina++;
-            	Gasolina++;
-            	Gasolina++;
-                frame = (originalMessage_2F & 0x00FFFFFF) | ((uint32_t)Gasolina << 24);
-                CAN_SendData(CAN1, 8, frame, 0x1); //CAN1, DLC , DATA, Localidad
-                CAN_RequestTransmission(CAN1, 0x1);
-                PID = 0x00;
-            }
-*/
         }
-        delay(1000000);
-        sendStringUARTx(USART3, "AT+QGPSLOC? \r\n\0");
+
+       C++;
+       delay(1000000);
+       sendStringUARTx(USART3, "AT+QGPSEND\r\n\0");
+       delay(1000000);
+       sendMessage_Cell(C);
+       delay(1000000);
+       sendStringUARTx(USART3, "AT+QGPS=1\r\n\0");
+       delay(1000000);
     }
-
-
-/*
-		 //Lectura de la Aceleracion en AX y AY
-
-
-		 //Logica para determinar aceleraciones y frenados bruscos
-		 MPU6050_Read_Ace_Giro();
-
-		  if (AX > 0.2){
-			  I2C_Tx_2Bytes(I2C3, AdreSSD1306, ControlbC, SSD1306_SETPAGE0);
-			  SSD1306_PosCom(43);
-			  Flecha_Arriba();
-			  I2C_Tx_2Bytes(I2C3, AdreSSD1306, ControlbC, SSD1306_SETPAGE5);
-			  SSD1306_PosCom(0);
-			  SSD1306_WriteString("                                ");
-			  I2C_Tx_2Bytes(I2C3, AdreSSD1306, ControlbC, SSD1306_SETPAGE5);
-			  SSD1306_PosCom(0);
-			  SSD1306_WriteString("! ACELERACIÓN !");
-			  AB = AB + 1;
-			 // I2C_delay(300000);
-		  }else if(AX < -0.2){
-			  I2C_Tx_2Bytes(I2C3, AdreSSD1306, ControlbC, SSD1306_SETPAGE3);
-			  SSD1306_PosCom(43);
-			  Flecha_Abajo();
-			  I2C_Tx_2Bytes(I2C3, AdreSSD1306, ControlbC, SSD1306_SETPAGE5);
-			  SSD1306_PosCom(0);
-			  SSD1306_WriteString("                                ");
-			  I2C_Tx_2Bytes(I2C3, AdreSSD1306, ControlbC, SSD1306_SETPAGE5);
-			  SSD1306_PosCom(0);
-			  SSD1306_WriteString("! FRENADO !");
-			  FB= FB + 1;
-			  //I2C_delay(300000);
-		  } else {
-			  I2C_Tx_2Bytes(I2C3, AdreSSD1306, ControlbC, SSD1306_SETPAGE3);
-		      SSD1306_PosCom(43);
-		      Vacear();
-	   		  I2C_Tx_2Bytes(I2C3, AdreSSD1306, ControlbC, SSD1306_SETPAGE0);
-	   		  SSD1306_PosCom(43);
-	   		  Vacear();
-			  I2C_Tx_2Bytes(I2C3, AdreSSD1306, ControlbC, SSD1306_SETPAGE5);
-			  SSD1306_PosCom(0);
-			  SSD1306_WriteString(" ! PROYECTO AV SS !");
-			  I2C_delay(4000);
-		  }
-
-		  if (GZ > 200.9){
-			  I2C_Tx_2Bytes(I2C3, AdreSSD1306, ControlbC, SSD1306_SETPAGE5);
-			  SSD1306_PosCom(0);
-			  SSD1306_WriteString("                                ");
-			  I2C_Tx_2Bytes(I2C3, AdreSSD1306, ControlbC, SSD1306_SETPAGE5);
-			  SSD1306_PosCom(0);
-			  SSD1306_WriteString("! GIRO BRUSCO !");
-			  GB = GB + 1;
-			 // I2C_delay(300000);
-		  }
-
-		  if (AZ < 0.4){
-			  I2C_Tx_2Bytes(I2C3, AdreSSD1306, ControlbC, SSD1306_SETPAGE5);
-			  SSD1306_PosCom(0);
-			  SSD1306_WriteString("                                ");
-			  I2C_Tx_2Bytes(I2C3, AdreSSD1306, ControlbC, SSD1306_SETPAGE5);
-			  SSD1306_PosCom(0);
-			  SSD1306_WriteString("! WARNING !");
-			  W = W + 1;
-			 // I2C_delay(300000);
-		  }
-
-
-
-
-
-		    char buffer[64]; // Buffer suficientemente grande para la cadena completa
-		    // Convertir los valores enteros a cadenas de caracteres y concatenarlos
-		    sprintf(buffer, "A: %d F: %d G: %d W: %d ", AB, FB, GB, W);
-		    // Imprimir la cadena resultante en la pantalla SSD1306
-			  I2C_Tx_2Bytes(I2C3, AdreSSD1306, ControlbC, SSD1306_SETPAGE7);
-			  SSD1306_PosCom(0);
-		    SSD1306_WriteString(buffer);
-
-*/
-
-
-		  //Logica para sistema de orientaicon
-
-/*
-	    	// Commute bit 13 with a xor operation
-			GPIOC->ODR ^= 0x00002000;
-			//delay(30000);
-		  I2C_Tx_2Bytes(I2C3, AdreSSD1306, ControlbC, SSD1306_SETPAGE1);
-		  SSD1306_PosCom(0);
-		  if (AY > 0.2){
-			  Flecha_Izquierda();
-		  } else if(AY < -0.2){
-			  Flecha_Derecha();
-		  }else{
-			  I2C_Tx_2Bytes(I2C3, AdreSSD1306, ControlbC, SSD1306_SETPAGE1);
-			  SSD1306_PosCom(0);
-			  Vacear();
-			  I2C_Tx_2Bytes(I2C3, AdreSSD1306, ControlbC, SSD1306_SETPAGE2);
-			  SSD1306_PosCom(0);
-			  Vacear();
-			  I2C_Tx_2Bytes(I2C3, AdreSSD1306, ControlbC, SSD1306_SETPAGE1);
-			  SSD1306_PosCom(90);
-			  Vacear();
-			  I2C_Tx_2Bytes(I2C3, AdreSSD1306, ControlbC, SSD1306_SETPAGE2);
-			  SSD1306_PosCom(90);
-			  Vacear();
-		  }
-
-		  if (AX > 0.2){
-			  I2C_Tx_2Bytes(I2C3, AdreSSD1306, ControlbC, SSD1306_SETPAGE0);
-			  SSD1306_PosCom(43);
-			  Flecha_Arriba();
-		  }else if(AX < -0.2){
-			  I2C_Tx_2Bytes(I2C3, AdreSSD1306, ControlbC, SSD1306_SETPAGE3);
-			  SSD1306_PosCom(43);
-			  Flecha_Abajo();
-		  } else {
-			  I2C_Tx_2Bytes(I2C3, AdreSSD1306, ControlbC, SSD1306_SETPAGE3);
-		      SSD1306_PosCom(43);
-		      Vacear();
-	   		  I2C_Tx_2Bytes(I2C3, AdreSSD1306, ControlbC, SSD1306_SETPAGE0);
-	   		  SSD1306_PosCom(43);
-	   		  Vacear();
-		  }
-		  //Fin Logica Sistema de orientacion
-		  I2C_delay(30);*/
-
-
  }
+
+
 
 void Init_Peripheral(void){
 	  /*CONFIGURACIÓN DEL RELOJ*/
@@ -435,7 +277,6 @@ void Init_Peripheral(void){
 }
 
 void Conf_Peripheral(void){
-
 	 //Configuración de Led y boton de usuario
 	//  GPIOx_InitIO(GPIOC, 2, GPIO_MODER_INPUT, false); //Botón de Usuario de Liese-duino
 	 // GPIOx_InitIO(GPIOC, 13, GPIO_MODER_OUTPUT, false); //Led de usuario de Liese-duino
@@ -553,65 +394,11 @@ void CAN1_RX1_IRQHandler(){
 void sendMessage(uint8_t caseNumber) {
     switch(caseNumber) {
         case 1:
-            sendMessage_http(Vel_Km);
-         //   sendStringUARTx(USART3, "AT+CMGF = 1\r\n\0");
-          //  sendStringUARTx(USART3,"AT+QICSGP=1,1,\"internet.itelcel.com\",\"webgprs\",\"webgprs2002\",1");
-          //  CAN_SendData(CAN1, 8, 0x00000000320D4103, 0x1); //CAN1, DLC , DATA, Localidad
-          //  CAN_RequestTransmission(CAN1, 0x01);
+
             break;
         case 2:
-        	sendMessage_http(Vel_Km);
-         //   sendStringUARTx(USART3, "AT+CSCS=\"GSM\"\r\n\0");
-          //  sendStringUARTx(USART3, "AT+QIACT=1\r\n\0");
-           // CAN_SendData(CAN1, 8, 0x00000000340D4103, 0x1); //CAN1, DLC , DATA, Localidad
-           // CAN_RequestTransmission(CAN1, 0x01);
-            break;
-        case 3:
-        	sendMessage_http(Vel_Km);
-          //  sendStringUARTx(USART3, "AT+CMGS=\"5617951874\"\r\n\0");
-         //   sendStringUARTx(USART3, "AT+QIACT?\r\n\0");
-           // CAN_SendData(CAN1, 8, 0x00000000400D4103, 0x1); //CAN1, DLC , DATA, Localidad
-           // CAN_RequestTransmission(CAN1, 0x01);
-            break;
-        case 4:
-        	sendMessage_http(Vel_Km);
-        //    sendStringUARTx(USART3, "Pruebas 20/11/24 GSM/STM32L452RE 02\r\n\0");
-          //  sendStringUARTx(USART3, "AT+QHTTPCFG=\"contextid\",1\r\n\0");
-           // CAN_SendData(CAN1, 8, 0x00000000420D4103, 0x1); //CAN1, DLC , DATA, Localidad
-           // CAN_RequestTransmission(CAN1, 0x01);
-            break;
-        case 5:
-        	sendMessage_http(Vel_Km);
-        //    sendByteUARTx(USART3, 0x1A);  // Carácter Ctrl+Z para finalizar el mensaje SMS
-         //   sendStringUARTx(USART3, "AT+QHTTPURL=71,30\r\n\0");
-           // CAN_SendData(CAN1, 8, 0x00000000480D4103, 0x1); //CAN1, DLC , DATA, Localidad
-           // CAN_RequestTransmission(CAN1, 0x01);
-            break;
-        case 6:
-        	sendMessage_http(Vel_Km);
-        //sendStringUARTx(USART3, "AT+CSQ\r\n\0");
-        //    char url[100];  // Asegúrate de que el tamaño sea adecuado
-        // snprintf(url, sizeof(url), "https://api.thingspeak.com/update?api_key=D2SHDYLUTSW1PFRW&field1=%d\r\n\0", fieldValue);
-       // sendStringUARTx(USART3, url);
-           // CAN_SendData(CAN1, 8, 0x00000000500D4103, 0x1); //CAN1, DLC , DATA, Localidad
-           // CAN_RequestTransmission(CAN1, 0x01);
-            break;
-        case 7:
-        	sendMessage_http(Vel_Km);
-     //   sendStringUARTx(USART3, "AT+CSQ\r\n\0");
-       // sendStringUARTx(USART3, "AT+QHTTPGET=30\r\n\0");
-           // CAN_SendData(CAN1, 8, 0x00000000500D4103, 0x1); //CAN1, DLC , DATA, Localidad
-           // CAN_RequestTransmission(CAN1, 0x01);
-            break;
-        case 8:
-        	sendMessage_http(Vel_Km);
-      //  sendStringUARTx(USART3, "AT+CSQ\r\n\0");
-      //  sendStringUARTx(USART3, "AT+QHTTPGET=30\r\n\0");
-           // CAN_SendData(CAN1, 8, 0x00000000500D4103, 0x1); //CAN1, DLC , DATA, Localidad
-           // CAN_RequestTransmission(CAN1, 0x01);
-            break;
+
         default:
-         //   sendStringUARTx(USART3, "Comando no válido\r\n\0");
             break;
     }
 }
@@ -716,8 +503,9 @@ void sendMessage_http_field4(uint16_t fieldValue) {
  * Función para enviar datos a través de HTTP con el valor del campo 4
  * *****************************************************************************/
 void sendMessage_Cell(int number) {
+
     char message[100]; // Buffer para el mensaje
-    sprintf(message, "Pruebas 03/12/24 GSM/STM32L452RE %d\r\n", number);
+    sprintf(message, "Pruebas 09/12/24 GSM/STM32L452RE %d\r\n", number);
 
     sendStringUARTx(USART3, "AT+CMGF=1\r\n\0");
     delay(100000);
@@ -733,6 +521,7 @@ void sendMessage_Cell(int number) {
 
     sendByteUARTx(USART3, 0x1A); // Carácter Ctrl+Z para finalizar el mensaje SMS
     delay(100000);
+
 }
 
 
@@ -749,65 +538,84 @@ void Obdii_Message(uint32_t Obdii_pid) {
  * Función para obtener datos OBD-II (velocidad, RPM, temperatura, combustible)
  * *****************************************************************************/
 void Get_Obdii_Data(void) {
-    // Petición de la velocidad
-    Obdii_Message(PID_0D);
-    delay(10000);
 
+	// Petición de la velocidad
+	//Limpiar Bytes
     ByteA = 0;
     ByteB = 0;
     ByteC = 0;
     ByteD = 0;
 
-    ByteA = (receivedData0_L & 0xFF000000) >> 24;
-    ByteB = (receivedData0_H & 0x000000FF);
-    ByteC = (receivedData0_H & 0x0000FF00) >> 8;
-    ByteD = (receivedData0_H & 0x00FF0000) >> 16;
-    Vel_Km = ByteA;
-
-    // Petición de las RPM
-    Obdii_Message(PID_0C);
+    delay(100);
+    Obdii_Message(PID_0D);    //Enviar mensaje de peticion OBDII de la velociad
     delay(10000);
 
+    //Filtrar cada Byte del mensaje de respuesta
+    ByteA = (CAN1->sFIFOMailBox[0].RDLR & 0xFF000000) >> 24;
+    ByteB = (CAN1->sFIFOMailBox[0].RDHR & 0x000000FF);
+    ByteC = (CAN1->sFIFOMailBox[0].RDHR & 0x0000FF00) >> 8;
+    ByteD = (CAN1->sFIFOMailBox[0].RDHR& 0x00FF0000) >> 16;
+
+    Vel_Km = ByteA; //Formlula para interpertar la velocidad
+
+
+	// Petición de las RPM
+	//Limpiar Bytes
     ByteA = 0;
     ByteB = 0;
     ByteC = 0;
     ByteD = 0;
 
-    ByteA = (receivedData0_L & 0xFF000000) >> 24;
-    ByteB = (receivedData0_H & 0x000000FF);
-    ByteC = (receivedData0_H & 0x0000FF00) >> 8;
-    ByteD = (receivedData0_H & 0x00FF0000) >> 16;
-    RPM_motor = (256 * ByteA + ByteB) / 4;
-
-    // Petición de la temperatura del líquido de enfriamiento
-    Obdii_Message(PID_05);
+    delay(100);
+    Obdii_Message(PID_0C);    //Enviar mensaje de peticion OBDII de las RPM
     delay(10000);
 
+    //Filtra cada Byte del mensaje de repuesta
+    ByteA = (CAN1->sFIFOMailBox[0].RDLR & 0xFF000000) >> 24;
+    ByteB = (CAN1->sFIFOMailBox[0].RDHR & 0x000000FF);
+    ByteC = (CAN1->sFIFOMailBox[0].RDHR & 0x0000FF00) >> 8;
+    ByteD = (CAN1->sFIFOMailBox[0].RDHR& 0x00FF0000) >> 16;
+
+    RPM_motor = (256 * ByteA + ByteB) / 4; //Formula para interpretar las RPM del motor
+
+	// Petición del liquido de enfriamiento
+	//Limpiar Bytes
     ByteA = 0;
     ByteB = 0;
     ByteC = 0;
     ByteD = 0;
 
-    ByteA = (receivedData0_L & 0xFF000000) >> 24;
-    ByteB = (receivedData0_H & 0x000000FF);
-    ByteC = (receivedData0_H & 0x0000FF00) >> 8;
-    ByteD = (receivedData0_H & 0x00FF0000) >> 16;
-    Temp_liquido = ByteA - 40;
-
-    // Petición del nivel de combustible
-    Obdii_Message(PID_2F);
+    delay(100);
+    Obdii_Message(PID_05);    //Enviar mensaje de peticion OBDII para el liquido de enfriamiento
     delay(10000);
 
+    //Filtra cada Byte del mensaje de la respuesta del liquido de enfriamiento
+    ByteA = (CAN1->sFIFOMailBox[0].RDLR & 0xFF000000) >> 24;
+    ByteB = (CAN1->sFIFOMailBox[0].RDHR & 0x000000FF);
+    ByteC = (CAN1->sFIFOMailBox[0].RDHR & 0x0000FF00) >> 8;
+    ByteD = (CAN1->sFIFOMailBox[0].RDHR& 0x00FF0000) >> 16;
+
+    Temp_liquido = ByteA - 40; //Formula para interpretar la temperatura del liquido de enfriamiento
+
+	// Petición del nivel de combustible
+	//Limpiar Bytes
     ByteA = 0;
     ByteB = 0;
     ByteC = 0;
     ByteD = 0;
 
-    ByteA = (receivedData0_L & 0xFF000000) >> 24;
-    ByteB = (receivedData0_H & 0x000000FF);
-    ByteC = (receivedData0_H & 0x0000FF00) >> 8;
-    ByteD = (receivedData0_H  & 0x00FF0000) >> 16;
-    Combustible = (ByteA * 100) / 255;
+    delay(100);
+    Obdii_Message(PID_2F);	//Enviar mensaje de peticion OBDII del nivel de combustible
+    delay(10000);
+
+    //Filtra cada Byte del mensaje de la respuesta del nivel de combustible
+    ByteA = (CAN1->sFIFOMailBox[0].RDLR & 0xFF000000) >> 24;
+    ByteB = (CAN1->sFIFOMailBox[0].RDHR & 0x000000FF);
+    ByteC = (CAN1->sFIFOMailBox[0].RDHR & 0x0000FF00) >> 8;
+    ByteD = (CAN1->sFIFOMailBox[0].RDHR& 0x00FF0000) >> 16;
+
+    Combustible = (ByteA * 100) / 255; //Formula para interpretar el nivel de combustible
+
 }
 
 void SSD1306_Refresh (void){
@@ -855,4 +663,7 @@ void Send_Telemetry (void){
     delay(1000000);
     */
 }
+
+
+
 

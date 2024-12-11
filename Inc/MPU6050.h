@@ -102,7 +102,7 @@ int16_t MPU6050_Read(uint8_t Register);
 
 void MPU6050_Init(void){
     I2C_Tx_2Bytes(I2C3, AddressMPU6050, MPU6050_PWR_MGMT_1, 0x00);
-    I2C_Tx_2Bytes(I2C3, AddressMPU6050, MPU6050_ACCEL_CONFIG, 0X00); //Configura el acelerometro a +-4g
+    I2C_Tx_2Bytes(I2C3, AddressMPU6050, MPU6050_ACCEL_CONFIG, 0X00); //Configura el acelerometro a +-2g
     I2C_Tx_2Bytes(I2C3, AddressMPU6050, MPU6050_GYRO_CONFIG, 0X00); //Configura giroscopio a +- 250°/s
     I2C_Tx_2Bytes(I2C3, AddressMPU6050, 0x19, 0X07);
     I2C_Tx_2Bytes(I2C3, AddressMPU6050, MPU6050_CONFIG, 0x01);
