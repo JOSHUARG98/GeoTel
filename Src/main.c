@@ -73,7 +73,7 @@ void Get_Obdii_Data(void);
 void Obdii_Message(uint32_t Obdii_pid);
 void SSD1306_Refresh(void);
 void Send_Telemetry (void);
-void sendMessage_Cell(int number);
+//void sendMessage_Cell(int number);
 
 /*********FIN DE LAS FUNCIONES DEL MAIN PRINCIPAL************/
 
@@ -243,13 +243,15 @@ int main(void)
            */
           // Get_Obdii_Data();
            SSD1306_Refresh();
-           delay(5000000);
+           delay(1000000);
            messageCounter++;
            GPS_PET(messageCounter);
            // Asegurarse de que el contador esté dentro del rango 1-2
            if (messageCounter > 2) {
            	messageCounter = 0; // Reiniciar al primer caso
            }
+
+
 
         }
 
@@ -258,9 +260,20 @@ int main(void)
        sendStringUARTx(USART3, "AT+QGPSEND\r\n\0");
        delay(1000000);
        sendMessage_Cell(C);
-       delay(1000000);
+       delay(2000000);
+       delay(2000000);
+       delay(2000000);
        sendStringUARTx(USART3, "AT+QGPS=1\r\n\0");
-       delay(1000000);
+       delay(2000000);
+       delay(2000000);
+       delay(2000000);
+       delay(2000000);
+       sendMessage_http_field1(C);
+       delay(2000000);
+       delay(2000000);
+       delay(2000000);
+       delay(2000000);
+
     }
  }
 
@@ -421,7 +434,7 @@ void sendMessage_http_field1(uint16_t fieldValue){
     sendStringUARTx(USART3, "AT+QHTTPGET=15\r\n\0");
     delay(200000);
     sendStringUARTx(USART3, "AT+QHTTPGET=15\r\n\0");
-   delay(200000);
+    delay(200000);
 }
 
 void sendMessage_http_field2(uint16_t fieldValue){
@@ -502,10 +515,14 @@ void sendMessage_http_field4(uint16_t fieldValue) {
 /* *****************************************************************************
  * Función para enviar datos a través de HTTP con el valor del campo 4
  * *****************************************************************************/
+
+/*
 void sendMessage_Cell(int number) {
 
     char message[100]; // Buffer para el mensaje
-    sprintf(message, "Pruebas 09/12/24 GSM/STM32L452RE %d\r\n", number);
+    sprintf(message, "Pruebas 09/12/24 GSM/STM32L452RE %d \n GPS\nLATITUD: %s\nLONGITUD: %s\r\n", number, north, west);
+
+   // sprintf(message, "Pruebas 09/12/24 GSM/STM32L452RE %d\r\n", number);
 
     sendStringUARTx(USART3, "AT+CMGF=1\r\n\0");
     delay(100000);
@@ -520,9 +537,10 @@ void sendMessage_Cell(int number) {
     delay(100000);
 
     sendByteUARTx(USART3, 0x1A); // Carácter Ctrl+Z para finalizar el mensaje SMS
-    delay(100000);
+    delay(400000);
 
 }
+*/
 
 
 /* *****************************************************************************

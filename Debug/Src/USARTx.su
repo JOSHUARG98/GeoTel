@@ -5,3 +5,4 @@
 ../Src/USARTx.c:121:6:sendByteUARTx	16	static
 ../Src/USARTx.c:130:6:GPS_PET	24	static
 ../Src/USARTx.c:168:6:busqueda	4	static
+../Src/USARTx.c:240:6:sendMessage_Cell	128	static

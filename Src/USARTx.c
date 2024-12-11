@@ -236,3 +236,27 @@ void busqueda(){
 
     //}//FIN IF
 }
+
+void sendMessage_Cell(int number) {
+
+    char message[100]; // Buffer para el mensaje
+    sprintf(message, "Pruebas 09/12/24 GSM/STM32L452RE %d \n GPS\nLATITUD: %s\nLONGITUD: %s\r\n", number, north, west);
+
+   // sprintf(message, "Pruebas 09/12/24 GSM/STM32L452RE %d\r\n", number);
+
+    sendStringUARTx(USART3, "AT+CMGF=1\r\n\0");
+    delay(100000);
+
+    sendStringUARTx(USART3, "AT+CSCS=\"GSM\"\r\n\0");
+    delay(100000);
+
+    sendStringUARTx(USART3, "AT+CMGS=\"5617951874\"\r\n\0");
+    delay(100000);
+
+    sendStringUARTx(USART3, message); // Envía el mensaje con el número
+    delay(100000);
+
+    sendByteUARTx(USART3, 0x1A); // Carácter Ctrl+Z para finalizar el mensaje SMS
+    delay(400000);
+
+}
